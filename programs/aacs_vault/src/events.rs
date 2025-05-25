@@ -12,6 +12,7 @@ pub struct VaultCreated {
 #[event]
 pub struct SolDeposited {
     pub vault: Pubkey,
+    pub vault_signer: Pubkey,
     pub depositor: Pubkey,
     pub amount: u64,
 }
@@ -20,6 +21,26 @@ pub struct SolDeposited {
 pub struct SolWithdrawn {
     pub vault: Pubkey,
     pub withdrawer: Pubkey,
+    pub amount: u64,
+}
+
+#[event]
+pub struct TokenDeposited {
+    pub vault: Pubkey,
+    pub vault_signer: Pubkey,
+    pub vault_signer_token_account: Pubkey,
+    pub depositor: Pubkey,
+    pub depositor_token_account: Pubkey,
+    pub amount: u64,
+}
+
+#[event]
+pub struct TokenWithdrawn {
+    pub vault: Pubkey,
+    pub vault_signer: Pubkey,
+    pub vault_signer_token_account: Pubkey,
+    pub withdrawer: Pubkey,
+    pub withdrawer_token_account: Pubkey,
     pub amount: u64,
 }
 

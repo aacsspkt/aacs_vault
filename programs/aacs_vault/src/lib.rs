@@ -28,6 +28,14 @@ pub mod aacs_vault {
         withdraw_sol_handler(ctx, params)
     }
 
+    pub fn deposit_token(ctx: Context<DepositToken>, params: DepositTokenParams) -> Result<()> {
+        deposit_token_handler(ctx, params)
+    }
+
+    pub fn withdraw_token(ctx: Context<WithdrawToken>, params: WithdrawTokenParams) -> Result<()> {
+        withdraw_token_handler(ctx, params)
+    }
+
     pub fn create_proposal(
         ctx: Context<CreateProposal>,
         params: CreateProposalParams,
