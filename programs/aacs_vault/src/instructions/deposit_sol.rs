@@ -16,11 +16,11 @@ pub struct DepositSolParams {
 #[derive(Accounts)]
 pub struct DepositSol<'info> {
     #[account(mut)]
-    pub payer: Signer<'info>,
+    pub depositor: Signer<'info>,
 
     #[account(
         mut,
-        constraint = &vault.owner == payer.key @ErrorCode::NotVaultOwner 
+        constraint = &vault.owner == depositor.key @ErrorCode::NotVaultOwner 
     )]
     pub vault: Box<Account<'info, Vault>>,
 
@@ -30,7 +30,7 @@ pub struct DepositSol<'info> {
             VAULT_SIGNER_PREFIX.as_ref(),
             vault.key().as_ref()
         ],
-        bump,
+        bump = vault.signer_bump,
     )]
     /// CHECK: this is signer of vault, holds SOL for that
     pub vault_signer: UncheckedAccount<'info>,
@@ -39,19 +39,13 @@ pub struct DepositSol<'info> {
 }
 
 pub fn deposit_sol_handler(ctx: Context<DepositSol>, params: DepositSolParams) -> Result<()> {
-    let payer_account = &ctx.accounts.payer;
+    let depositor_account = &ctx.accounts.depositor;
     let vault_account = &ctx.accounts.vault;
     let vault_signer_account = &ctx.accounts.vault_signer;
     let system_program = &ctx.accounts.system_program;
 
-    require_keys_eq!(
-        vault_account.owner,
-        payer_account.key(),
-        ErrorCode::NotVaultOwner
-    );
-
     require_gte!(
-        payer_account.lamports(),
+        depositor_account.lamports(),
         params.amount,
         ErrorCode::NotEnoughLamports
     );
@@ -59,7 +53,7 @@ pub fn deposit_sol_handler(ctx: Context<DepositSol>, params: DepositSolParams) -
     let cpi_context = CpiContext::new(
         system_program.to_account_info(),
         Transfer {
-            from: payer_account.to_account_info(),
+            from: depositor_account.to_account_info(),
             to: vault_signer_account.to_account_info(),
         },
     );
@@ -68,8 +62,9 @@ pub fn deposit_sol_handler(ctx: Context<DepositSol>, params: DepositSolParams) -
 
     emit!(SolDeposited {
         amount: params.amount,
-        depositor: payer_account.key(),
-        vault: vault_account.key()
+        depositor: depositor_account.key(),
+        vault: vault_account.key(),
+        vault_signer: vault_signer_account.key()
     });
 
     Ok(())

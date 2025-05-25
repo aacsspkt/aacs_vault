@@ -1,4 +1,4 @@
-use anchor_lang::{prelude::*, solana_program::program::invoke_signed};
+use anchor_lang::{prelude::*, system_program::{transfer, Transfer}};
 
 use crate::{
     constants::VAULT_SIGNER_PREFIX, state::Vault, error::ErrorCode
@@ -12,11 +12,11 @@ pub struct WithdrawSolParams {
 #[derive(Accounts)]
 pub struct WithdrawSol<'info> {
     #[account(mut)]
-    pub recipient: Signer<'info>,
+    pub withdrawer: Signer<'info>,
 
     #[account(
         mut,
-        constraint = vault.owner == recipient.key() @ErrorCode::NotVaultOwner
+        constraint = vault.owner == withdrawer.key() @ErrorCode::NotVaultOwner
     )]
     pub vault: Box<Account<'info, Vault>>,
 
@@ -35,8 +35,9 @@ pub struct WithdrawSol<'info> {
 
 pub fn withdraw_sol_handler(ctx: Context<WithdrawSol>, params: WithdrawSolParams) -> Result<()> {
     let vault_account = &ctx.accounts.vault;
-    let recipient_account = &ctx.accounts.recipient;
+    let withdrawer_account = &ctx.accounts.withdrawer;
     let vault_signer_account = &ctx.accounts.vault_signer;
+    let system_program = &ctx.accounts.system_program;
 
     let vault_key = vault_account.key();
     
@@ -46,24 +47,24 @@ pub fn withdraw_sol_handler(ctx: Context<WithdrawSol>, params: WithdrawSolParams
         ErrorCode::NotEnoughLamports
     );
 
-    let ix = anchor_lang::solana_program::system_instruction::transfer(
-        &vault_signer_account.key(),
-        &recipient_account.key(),
-        params.amount,
-    );
-
-    let accounts = vec![
-        recipient_account.to_account_info(),
-        vault_signer_account.to_account_info(),
-    ];
-
-    let vault_signer_seeds = &[
+    let seeds = &[
         VAULT_SIGNER_PREFIX.as_ref(),
         vault_key.as_ref(),
         &[vault_account.signer_bump],
     ];
+    
+    let signer_seeds = &[&seeds[..]];
 
-    invoke_signed(&ix, &accounts, &[vault_signer_seeds])?;
+    let cpi_context = CpiContext::new_with_signer(
+        system_program.to_account_info(),
+        Transfer {
+            from: vault_signer_account.to_account_info(),
+            to: withdrawer_account.to_account_info(),
+        },
+        signer_seeds,
+    );
+
+    transfer(cpi_context, params.amount)?;
 
     Ok(())
 }
