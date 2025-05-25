@@ -1,6 +1,11 @@
 import { BigNumber } from 'bignumber.js';
 
 import * as anchor from '@coral-xyz/anchor';
+import {
+  createAssociatedTokenAccount,
+  createMint,
+  mintTo,
+} from '@solana/spl-token';
 
 export const TEN_BIGNUM = BigNumber(10);
 
@@ -114,4 +119,45 @@ export function sleep(ms: number) {
 export async function getBlockTime(connection: anchor.web3.Connection) {
 	const time = await connection.getBlockTime(await connection.getSlot());
 	return time!;
+}
+
+export async function createNewMint(
+	connection: anchor.web3.Connection,
+	payer: anchor.web3.Keypair,
+	mintKeypair: anchor.web3.Keypair,
+	mintDecimals: number,
+	destination?: anchor.web3.PublicKey,
+) {
+	// const mintKeypair = anchor.web3.Keypair.generate();
+	const mint = await createMint(
+		connection,
+		payer,
+		payer.publicKey,
+		payer.publicKey,
+		mintDecimals,
+		mintKeypair,
+	);
+	// const mint = mintKeypair.publicKey;
+	console.log("\tMint:", mint.toString());
+
+	const destinationTokenAccount = await createAssociatedTokenAccount(
+		connection,
+		payer,
+		mint,
+		destination ? destination : payer.publicKey,
+	);
+	console.log("\tTokenAccount:", destinationTokenAccount.toString());
+
+	const mintToSignature = await mintTo(
+		connection,
+		payer,
+		mint,
+		destinationTokenAccount,
+		payer,
+		BigInt(1000000000),
+	);
+	console.log("\tMintToSignature:", mintToSignature);
+
+	console.log("Mint created", mint.toBase58());
+	return mint;
 }

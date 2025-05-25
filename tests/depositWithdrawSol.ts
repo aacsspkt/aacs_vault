@@ -6,7 +6,7 @@ import { Program } from '@coral-xyz/anchor';
 import { AacsVault } from '../target/types/aacs_vault';
 import { sleep } from './shared';
 
-describe("Deposit, and withdraw flow", () => {
+describe("Deposit, and withdraw SOL flow", () => {
 	// Configure the client to use the local cluster.
 	anchor.setProvider(anchor.AnchorProvider.env());
 	const provider = anchor.getProvider();
@@ -46,7 +46,7 @@ describe("Deposit, and withdraw flow", () => {
 			const depositSolSignature = await program.methods
 				.depositSol({ amount: new anchor.BN(depositAmount) })
 				.accounts({
-					payer: payerPublicKey,
+					depositor: payerPublicKey,
 					vault: vaultPublicKey,
 				})
 				.signers([payer])
@@ -66,12 +66,12 @@ describe("Deposit, and withdraw flow", () => {
 				"Vault balance after deposit does not match",
 			);
 
-			const withdrawAmount = 1 * anchor.web3.LAMPORTS_PER_SOL;
+			const withdrawAmount = 4 * anchor.web3.LAMPORTS_PER_SOL;
 			const withdrawSolSignature = await program.methods
 				.withdrawSol({ amount: new anchor.BN(withdrawAmount) })
 				.accounts({
 					vault: vaultPublicKey,
-					recipient: payerPublicKey,
+					withdrawer: payerPublicKey,
 				})
 				.signers([payer])
 				.rpc();
@@ -86,7 +86,7 @@ describe("Deposit, and withdraw flow", () => {
 			// );
 
 			assert(
-				vaultBalanceB - vaultBalanceC === 1 * anchor.web3.LAMPORTS_PER_SOL,
+				vaultBalanceB - withdrawAmount === vaultBalanceC,
 				"Vault balance after withdraw does not match",
 			);
 		});

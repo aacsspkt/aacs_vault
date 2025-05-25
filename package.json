@@ -6,6 +6,7 @@
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",
+    "@solana/spl-token": "^0.4.13",
     "bignumber.js": "^9.3.0"
   },
   "devDependencies": {
