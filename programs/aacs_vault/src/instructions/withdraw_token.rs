@@ -15,7 +15,8 @@ use crate::{
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct WithdrawTokenParams {
-    amount: u64
+    amount: u64,
+    decimals: u8
 }
 
 #[derive(Accounts)]
@@ -51,7 +52,7 @@ pub struct WithdrawToken<'info> {
      #[account(
         mut,
         associated_token::mint = token_mint,
-        associated_token::authority = vault_signer,
+        associated_token::authority = withdrawer,
     )]
     pub withdrawer_token_account: InterfaceAccount<'info, TokenAccount>,
     
@@ -70,6 +71,8 @@ pub fn withdraw_token_handler(ctx: Context<WithdrawToken>, params: WithdrawToken
     let vault_signer_token_account = &ctx.accounts.vault_signer_token_account;
     let token_mint_account = &ctx.accounts.token_mint;
     let token_program = &ctx.accounts.token_program;
+
+    require_gte!(vault_signer_token_account.amount, params.amount, ErrorCode::NotEnoughTokens);
 
     let vault_key = vault_account.key();
     
@@ -92,9 +95,7 @@ pub fn withdraw_token_handler(ctx: Context<WithdrawToken>, params: WithdrawToken
         signer_seeds
     );
 
-    let decimals = token_mint_account.decimals;
-
-    transfer_checked(cpi_context, params.amount, decimals)?;
+    transfer_checked(cpi_context, params.amount, params.decimals)?;
 
     emit!(TokenWithdrawn {
         amount: params.amount,

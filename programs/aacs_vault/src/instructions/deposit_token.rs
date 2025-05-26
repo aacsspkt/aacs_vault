@@ -16,6 +16,7 @@ use crate::{
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct DepositTokenParams {
     pub amount: u64,
+    pub decimals: u8
 }
 
 #[derive(Accounts)]
@@ -51,7 +52,7 @@ pub struct DepositToken<'info> {
      #[account(
         mut,
         associated_token::mint = token_mint,
-        associated_token::authority = vault_signer,
+        associated_token::authority = depositor,
     )]
     pub depositor_token_account: InterfaceAccount<'info, TokenAccount>,
     
@@ -71,6 +72,12 @@ pub fn deposit_token_handler(ctx: Context<DepositToken>, params: DepositTokenPar
     let token_program = &ctx.accounts.token_program;
     let token_mint_account = &ctx.accounts.token_mint;
 
+    require_gte!(
+        depositor_token_account.amount, 
+        params.amount, 
+        ErrorCode::NotEnoughTokens
+    );
+
     let cpi_context = CpiContext::new(
         token_program.to_account_info(),
         TransferChecked {
@@ -81,9 +88,7 @@ pub fn deposit_token_handler(ctx: Context<DepositToken>, params: DepositTokenPar
         },
     );
 
-    let decimals = token_mint_account.decimals;
-
-    transfer_checked(cpi_context, params.amount, decimals)?;
+    transfer_checked(cpi_context, params.amount, params.decimals)?;
 
     emit!(TokenDeposited {
         amount: params.amount,
