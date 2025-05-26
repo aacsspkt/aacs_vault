@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 
 use super::AccountSpec;
 
-#[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize)]
+#[derive(Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct Action {
     pub program_id: Pubkey,
     pub account_specs: Vec<AccountSpec>,

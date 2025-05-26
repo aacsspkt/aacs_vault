@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-#[derive(Debug, Clone, InitSpace, AnchorSerialize, AnchorDeserialize)]
+#[derive(Clone, InitSpace, AnchorSerialize, AnchorDeserialize)]
 pub struct AccountSpec {
     pub pubkey: Pubkey,
     pub is_signer: bool,

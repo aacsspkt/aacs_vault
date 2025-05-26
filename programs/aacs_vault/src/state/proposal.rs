@@ -3,7 +3,6 @@ use anchor_lang::prelude::*;
 use super::Action;
 
 #[account]
-#[derive(Debug)]
 pub struct Proposal {
     pub vault: Pubkey,
     pub proposal_stage: ProposalStage,
@@ -22,7 +21,7 @@ impl Proposal {
     }
 }
 
-#[derive(Debug, Default, InitSpace, Clone, Copy, AnchorSerialize, AnchorDeserialize)]
+#[derive(Default, InitSpace, Clone, Copy, AnchorSerialize, AnchorDeserialize)]
 pub enum ProposalStage {
     #[default]
     Draft = 0,
