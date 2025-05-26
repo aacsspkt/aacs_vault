@@ -146,7 +146,7 @@ export async function createNewMint(
 		mint,
 		destination ? destination : payer.publicKey,
 	);
-	console.log("\tTokenAccount:", destinationTokenAccount.toString());
+	// console.log("\tTokenAccount:", destinationTokenAccount.toString());
 
 	const mintToSignature = await mintTo(
 		connection,
@@ -154,10 +154,9 @@ export async function createNewMint(
 		mint,
 		destinationTokenAccount,
 		payer,
-		BigInt(1000000000),
+		BigInt(1000000000) * BigInt(10 ** mintDecimals),
 	);
 	console.log("\tMintToSignature:", mintToSignature);
 
-	console.log("Mint created", mint.toBase58());
 	return mint;
 }

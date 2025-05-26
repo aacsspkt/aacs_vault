@@ -1,8 +1,12 @@
+import { BigNumber } from 'bignumber.js';
 import { assert } from 'chai';
 
 import * as anchor from '@coral-xyz/anchor';
 import { Program } from '@coral-xyz/anchor';
-import { getOrCreateAssociatedTokenAccount } from '@solana/spl-token';
+import {
+  getAssociatedTokenAddressSync,
+  getOrCreateAssociatedTokenAccount,
+} from '@solana/spl-token';
 
 import { AacsVault } from '../target/types/aacs_vault';
 import {
@@ -28,12 +32,18 @@ describe("Deposit and withdraw Token flow", () => {
 
 	before(async () => {});
 
-	describe("flow: createVault() -> depositSol() -> withdrawSol()", () => {
+	describe("flow: createVault() -> depositToken() -> withdrawToken()", () => {
 		it("works as expected", async () => {
 			const mintDecimals = 9;
-			const UNITS_PER_TOKEN = BigInt(10 ** mintDecimals);
+			const UNITS_PER_TOKEN = BigNumber(10).pow(mintDecimals);
 			const mintKeypair = anchor.web3.Keypair.generate();
 			const mint = await createNewMint(provider.connection, payer, mintKeypair, mintDecimals);
+
+			await sleep(3000);
+
+			const payerAta = getAssociatedTokenAddressSync(mint, payerPublicKey, true);
+			// const payerTokenBalance = await provider.connection.getTokenAccountBalance(payerAta);
+			// console.log("PayerTokenBalance:", payerTokenBalance.value.uiAmountString);
 
 			const createVaultSignature = await program.methods
 				.createVault({ owner: payerPublicKey, signerBump: vaultBump })
@@ -63,13 +73,19 @@ describe("Deposit and withdraw Token flow", () => {
 			// 	"Vault Balance Before Deposit:",
 			// 	BigNumber(vaultBalanceA).div(anchor.web3.LAMPORTS_PER_SOL).toFixed(),
 			// );
-			const depositAmount = BigInt(10) * UNITS_PER_TOKEN;
+			const depositAmount = BigNumber(10).times(UNITS_PER_TOKEN).toFixed(0);
 			const depositTokenSignature = await program.methods
-				.depositToken({ amount: new anchor.BN(depositAmount.toString()) })
-				.accounts({
+				.depositToken({
+					amount: new anchor.BN(depositAmount),
+					decimals: mintDecimals,
+				})
+				.accountsPartial({
 					depositor: payerPublicKey,
 					vault: vaultPublicKey,
 					tokenMint: mint,
+					depositorTokenAccount: payerAta,
+					vaultSigner: vaultSigner,
+					vaultSignerTokenAccount: vaultSignerAta,
 				})
 				.signers([payer])
 				.rpc();
@@ -84,18 +100,25 @@ describe("Deposit and withdraw Token flow", () => {
 			// );
 
 			assert(
-				BigInt(vaultBalanceB.value.amount) - BigInt(vaultBalanceA.value.amount) ===
-					BigInt(10) * UNITS_PER_TOKEN,
+				BigNumber(vaultBalanceB.value.amount)
+					.minus(vaultBalanceA.value.amount)
+					.isEqualTo(BigNumber(10).times(UNITS_PER_TOKEN)),
 				"Vault token balance after deposit does not match",
 			);
 
-			const withdrawAmount = BigInt(3) * UNITS_PER_TOKEN;
+			const withdrawAmount = BigNumber(3).times(UNITS_PER_TOKEN).toFixed();
 			const withdrawTokenSignature = await program.methods
-				.withdrawToken({ amount: new anchor.BN(withdrawAmount.toString()) })
-				.accounts({
+				.withdrawToken({
+					amount: new anchor.BN(withdrawAmount),
+					decimals: mintDecimals,
+				})
+				.accountsPartial({
 					vault: vaultPublicKey,
 					withdrawer: payerPublicKey,
 					tokenMint: mint,
+					// vaultSigner: vaultSigner,
+					// vaultSignerTokenAccount: vaultSignerAta,
+					// withdrawerTokenAccount: payerAta,
 				})
 				.signers([payer])
 				.rpc();
@@ -110,8 +133,9 @@ describe("Deposit and withdraw Token flow", () => {
 			// );
 
 			assert(
-				BigInt(vaultBalanceB.value.amount) - withdrawAmount ===
-					BigInt(vaultBalanceC.value.amount),
+				BigNumber(vaultBalanceB.value.amount)
+					.minus(withdrawAmount)
+					.isEqualTo(vaultBalanceC.value.amount),
 				"Vault token balance after withdraw does not match",
 			);
 		});
