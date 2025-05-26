@@ -16,4 +16,6 @@ pub enum ErrorCode {
     ProposalExpired,
     #[msg("Invalid vault signer")]
     InvalidVaultSigner,
+    #[msg("Not enough tokens for lamports")]
+    NotEnoughTokens,
 }
