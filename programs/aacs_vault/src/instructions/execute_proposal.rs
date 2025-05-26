@@ -17,13 +17,13 @@ pub struct ExecuteProposal<'info> {
 
     #[account(
         mut, 
-        has_one = vault @ErrorCode::InvalidVault,
+        has_one = vault @ErrorCode::ProposalNotOwned,
         constraint = !proposal.is_executed @ErrorCode::ProposalAlreadyExecuted
     )]
     pub proposal: Box<Account<'info, Proposal>>,
 
     #[account(
-        constraint = &vault.owner == caller.key @ErrorCode::NotVaultOwner
+        constraint = &vault.owner == caller.key @ErrorCode::VaultNotOwned
     )]
     pub vault: Box<Account<'info, Vault>>,
 

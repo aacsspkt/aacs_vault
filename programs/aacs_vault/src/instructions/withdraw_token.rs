@@ -25,7 +25,7 @@ pub struct WithdrawToken<'info> {
     pub withdrawer: Signer<'info>,
 
      #[account(
-        constraint = &vault.owner == withdrawer.key @ErrorCode::NotVaultOwner 
+        constraint = &vault.owner == withdrawer.key @ErrorCode::VaultNotOwned 
     )]
     pub vault: Box<Account<'info, Vault>>,
 

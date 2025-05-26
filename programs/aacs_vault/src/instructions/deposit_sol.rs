@@ -20,7 +20,7 @@ pub struct DepositSol<'info> {
 
     #[account(
         mut,
-        constraint = &vault.owner == depositor.key @ErrorCode::NotVaultOwner 
+        constraint = &vault.owner == depositor.key @ErrorCode::VaultNotOwned 
     )]
     pub vault: Box<Account<'info, Vault>>,
 

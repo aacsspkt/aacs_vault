@@ -25,7 +25,7 @@ pub struct DepositToken<'info> {
     pub depositor: Signer<'info>,
 
     #[account(
-        constraint = &vault.owner == depositor.key @ErrorCode::NotVaultOwner 
+        constraint = &vault.owner == depositor.key @ErrorCode::VaultNotOwned 
     )]
     pub vault: Box<Account<'info, Vault>>,
 

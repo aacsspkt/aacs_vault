@@ -26,7 +26,7 @@ pub struct ExecuteProposalDirect<'info> {
     proposer: Signer<'info>,
 
     #[account(
-        constraint = &vault.owner == proposer.key @ErrorCode::NotVaultOwner
+        constraint = &vault.owner == proposer.key @ErrorCode::VaultNotOwned
     )]
     vault: Box<Account<'info, Vault>>,
 

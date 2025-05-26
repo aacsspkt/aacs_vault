@@ -45,7 +45,7 @@ pub struct CreateProposal<'info> {
     pub proposer: Signer<'info>,
     
     #[account(
-        constraint = &vault.owner == proposer.key @ErrorCode::NotVaultOwner
+        constraint = &vault.owner == proposer.key @ErrorCode::VaultNotOwned
     )]
     pub vault: Box<Account<'info, Vault>>,
     

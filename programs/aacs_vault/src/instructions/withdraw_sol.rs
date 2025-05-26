@@ -16,7 +16,7 @@ pub struct WithdrawSol<'info> {
 
     #[account(
         mut,
-        constraint = vault.owner == withdrawer.key() @ErrorCode::NotVaultOwner
+        constraint = vault.owner == withdrawer.key() @ErrorCode::VaultNotOwned
     )]
     pub vault: Box<Account<'info, Vault>>,
 
