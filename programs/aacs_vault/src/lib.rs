@@ -43,6 +43,10 @@ pub mod aacs_vault {
         create_proposal_handler(ctx, params)
     }
 
+    pub fn append_actions(ctx: Context<AppendActions>, params: AppendActionsParams) -> Result<()> {
+        append_actions_handler(ctx, params)
+    }
+
     pub fn execute_proposal(ctx: Context<ExecuteProposal>) -> Result<()> {
         execute_proposal_handler(ctx)
     }

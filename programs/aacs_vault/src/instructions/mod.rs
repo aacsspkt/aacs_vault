@@ -1,3 +1,4 @@
+mod append_actions;
 mod create_proposal;
 mod create_vault;
 mod deposit_sol;
@@ -7,6 +8,7 @@ mod execute_proposal_direct;
 mod withdraw_sol;
 mod withdraw_token;
 
+pub use append_actions::*;
 pub use create_proposal::*;
 pub use create_vault::*;
 pub use deposit_sol::*;

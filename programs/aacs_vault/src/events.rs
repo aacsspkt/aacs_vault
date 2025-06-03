@@ -54,6 +54,12 @@ pub struct ProposalCreated {
 }
 
 #[event]
+pub struct ActionsAppended {
+    pub proposal: Pubkey,
+    pub actions: Vec<Action>,
+}
+
+#[event]
 pub struct ProposalExecuted {
     pub vault: Pubkey,
     pub proposal: Pubkey,
