@@ -5,7 +5,7 @@ import { Program } from '@coral-xyz/anchor';
 
 import { AacsVault } from '../target/types/aacs_vault';
 import {
-  calculateTransactionSize,
+  calculateProposalSize,
   getBlockTime,
 } from './shared';
 
@@ -60,8 +60,7 @@ describe("Create proposal and execute proposal flow", () => {
 				lamports: withdrawAmount,
 			});
 
-			let { blockhash } = await provider.connection.getLatestBlockhash();
-			const proposalAccountSize = calculateTransactionSize([ix], blockhash);
+			const proposalAccountSize = calculateProposalSize([ix]);
 			// console.log("Proposal Account Size: ", proposalAccountSize);
 
 			const proposalParams = {

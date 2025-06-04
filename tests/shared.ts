@@ -9,18 +9,20 @@ import {
 
 export const TEN_BIGNUM = BigNumber(10);
 
-export function calculateTransactionSize(
-	ixs: anchor.web3.TransactionInstruction[],
-	recentBlockhash: string,
-) {
-	const size = new anchor.web3.TransactionMessage({
-		instructions: ixs,
-		payerKey: ixs[0].keys[0].pubkey,
-		recentBlockhash,
-	})
-		.compileToV0Message()
-		.serialize().length;
+type TransactionInstruction = {
+	keys: Array<anchor.web3.AccountMeta>;
+	programId: anchor.web3.PublicKey;
+	data: Buffer<ArrayBufferLike>;
+};
 
+export function calculateActionsSize(ixs: TransactionInstruction[]) {
+	return ixs
+		.map((ix) => 4 + ix.keys.length * 34 + 4 + ix.data.length + 32)
+		.reduce((acc, curr) => acc + curr, 0);
+}
+
+export function calculateProposalSize(ixs: anchor.web3.TransactionInstruction[]) {
+	const ix_size = calculateActionsSize(ixs);
 	// pub struct Proposal {
 	// 	pub vault: Pubkey,
 	// 	pub proposal_stage: ProposalStage,
@@ -31,18 +33,13 @@ export function calculateTransactionSize(
 	// 	pub actions: Vec<Action>,
 	// }
 
-	const withExtraSpace = 32 + 1 + 8 + 8 + 1 + 64 + size + /** extra */ 20;
+	const withExtraSpace =
+		32 + 1 + 8 + 8 + 1 + /** name */ 4 + 60 + /** actions */ 4 + ix_size + /** extra */ 20;
 
 	return withExtraSpace;
 }
 
-type ProposalStage =
-	| {
-			draft: {};
-	  }
-	| { completed: {} }
-	| { cancelled: {} }
-	| { failed: {} };
+type ProposalStage = { draft: {} } | { completed: {} } | { cancelled: {} } | { failed: {} };
 
 type AccountSpec = { pubkey: anchor.web3.PublicKey; isSigner: boolean; isWritable: boolean };
 

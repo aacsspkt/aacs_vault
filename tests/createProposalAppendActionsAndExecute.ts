@@ -5,11 +5,12 @@ import { Program } from '@coral-xyz/anchor';
 
 import { AacsVault } from '../target/types/aacs_vault';
 import {
-  calculateTransactionSize,
+  calculateActionsSize,
+  calculateProposalSize,
   getBlockTime,
 } from './shared';
 
-describe("Create proposal and execute proposal flow", () => {
+describe("Create proposal, append action and execute proposal flow", () => {
 	// Configure the client to use the local cluster.
 	anchor.setProvider(anchor.AnchorProvider.env());
 	const provider = anchor.getProvider();
@@ -60,8 +61,7 @@ describe("Create proposal and execute proposal flow", () => {
 				lamports: withdrawAmount,
 			});
 
-			let { blockhash } = await provider.connection.getLatestBlockhash();
-			const proposalAccountSize = calculateTransactionSize([ix], blockhash);
+			const proposalAccountSize = calculateProposalSize([ix]);
 			// console.log("Proposal Account Size: ", proposalAccountSize);
 
 			const proposalParams = {
@@ -140,9 +140,8 @@ describe("Create proposal and execute proposal flow", () => {
 				lamports: withdrawAmount,
 			});
 
-			let lbh = await provider.connection.getLatestBlockhash();
 			const proposalAccountSize2 =
-				calculateTransactionSize([ix], lbh.blockhash) + fetchedProposalAccountSize - 8; // Subtract Discriminator
+				calculateActionsSize([ix]) + fetchedProposalAccountSize - 8; // Subtract Discriminator
 
 			const appendActionSignature = await program.methods
 				.appendActions({
