@@ -39,7 +39,7 @@ pub struct DepositToken<'info> {
     /// CHECK: this is signer of vault, holds SOL for that
     pub vault_signer: UncheckedAccount<'info>,
 
-    pub token_mint: InterfaceAccount<'info, Mint>,
+    pub token_mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
         init_if_needed,
@@ -47,14 +47,14 @@ pub struct DepositToken<'info> {
         associated_token::mint = token_mint,
         associated_token::authority = vault_signer,
     )]
-    pub vault_signer_token_account: InterfaceAccount<'info, TokenAccount>,
+    pub vault_signer_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
     
      #[account(
         mut,
         associated_token::mint = token_mint,
         associated_token::authority = depositor,
     )]
-    pub depositor_token_account: InterfaceAccount<'info, TokenAccount>,
+    pub depositor_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
     
     pub token_program:  Program<'info, Token>,
     
