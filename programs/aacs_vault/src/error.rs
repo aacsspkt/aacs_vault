@@ -8,6 +8,8 @@ pub enum ErrorCode {
     VaultNotOwned,
     #[msg("Not enough lamports for transfer")]
     NotEnoughLamports,
+    #[msg("Data allocation space is not sufficient for proposal")]
+    InsufficientDataAllocationForProposal,
     #[msg("Proposal does not belongs to vault")]
     ProposalNotOwned,
     #[msg("Proposal is already executed")]

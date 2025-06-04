@@ -14,10 +14,9 @@ pub struct Proposal {
 }
 
 impl Proposal {
-    pub fn append_actions(&mut self, actions: &mut Vec<Action>) -> Result<()> {
-        self.actions.append(actions);
-
-        Ok(())
+    pub fn calculate_data_size(name: &str, actions: &[Action]) -> usize {
+        let action_data_size: usize = actions.iter().map(|action| action.get_data_size()).sum();
+        32 + 1 + 8 + 8 + 1 + 4 + name.len() + 4 + action_data_size
     }
 }
 

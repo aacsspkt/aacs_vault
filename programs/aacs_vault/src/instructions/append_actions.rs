@@ -58,7 +58,18 @@ pub fn append_actions_handler(
         })
         .collect::<Vec<_>>();
 
-    proposal_account.append_actions(&mut actions.clone());
+    let mut new_actions = proposal_account.actions.clone();
+    new_actions.append(&mut actions.clone());
+
+    let required_data_len = Proposal::calculate_data_size(&proposal_account.name, &new_actions);
+
+    require_gte!(
+        params.proposal_account_size as usize,
+        required_data_len,
+        ErrorCode::InsufficientDataAllocationForProposal
+    );
+
+    proposal_account.actions = new_actions;
 
     emit!(ActionsAppended {
         actions,

@@ -78,6 +78,14 @@ pub fn create_proposal_handler(ctx: Context<CreateProposal>, params: CreatePropo
         })
         .collect::<Vec<_>>();
 
+    let required_proposal_size = Proposal::calculate_data_size(&params.name, &actions);
+    
+    require_gte!(
+        params.proposal_account_size as usize, 
+        required_proposal_size, 
+        ErrorCode::InsufficientDataAllocationForProposal
+    );
+
     proposal_account.name = params.name;
     proposal_account.actions = actions.clone();
     proposal_account.vault = vault_account.key();

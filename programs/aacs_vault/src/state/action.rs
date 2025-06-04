@@ -17,4 +17,8 @@ impl Action {
             data,
         }
     }
+
+    pub fn get_data_size(&self) -> usize {
+        32 + 4 + (34 * self.account_specs.len()) + 4 + self.data.len()
+    }
 }
